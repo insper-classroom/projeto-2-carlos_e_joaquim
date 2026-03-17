@@ -1,5 +1,5 @@
 from flask import Flask, request
-from utils import load_data, add_data, init_db, load_data_by_id, update_data
+from utils import load_data, add_data, init_db, load_data_by_id, update_data, delete_data
 app = Flask(__name__)
 
 CAMPOS_OBRIGATORIOS = [
@@ -59,6 +59,14 @@ def atualizar_imovel(id):
 
     return {"mensagem": "Imovel atualizado com sucesso"}, 200
 
+@app.route("/imoveis/<int:id>", methods=["DELETE"])
+def deletar_imovel(id):
+    deletado = delete_data(id)
+
+    if not deletado:
+        return {"erro": "Imovel nao encontrado"}, 404
+
+    return {"mensagem": "Imovel excluído com sucesso"}, 200
 
 if __name__ == "__main__":
     app.run(debug=True)

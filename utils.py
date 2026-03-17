@@ -58,3 +58,13 @@ def update_data(id, imovel):
     cursor.close()
     conn.close()
     return updated
+
+def delete_data(id):
+    conn=load_db()
+    cursor=conn.cursor()
+    cursor.execute("DELETE FROM imoveis WHERE id = %s", (id,))
+    conn.commit()
+    deleted = cursor.rowcount > 0
+    cursor.close()
+    conn.close()
+    return deleted
