@@ -1,11 +1,6 @@
 import os
 import mysql.connector
 
-def load_templates(arquivo_html):
-    with open(f'static/templates/{arquivo_html}','r') as file:
-        template = file.read()
-    return template
-
 def load_db():
     conn=mysql.connector.connect(
         host=os.getenv('host'),
@@ -22,8 +17,9 @@ def init_db():
 
 def load_data():
     conn=load_db()
-    cursor=conn.cursor()
+    cursor=conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM imoveis")
     imoveis=cursor.fetchall()
+    cursor.close()
     conn.close()
     return imoveis
