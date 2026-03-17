@@ -32,3 +32,17 @@ def load_data_by_id(id):
     cursor.close()
     conn.close()
     return imovel
+
+def add_data(imovel):
+    conn=load_db()
+    cursor=conn.cursor()
+    cursor.execute(
+        "INSERT INTO imoveis (logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+        (imovel["logradouro"], imovel["tipo_logradouro"], imovel["bairro"], imovel["cidade"], imovel["cep"], imovel["tipo"], imovel["valor"], imovel["data_aquisicao"])
+    )
+    conn.commit()
+    novo_id = cursor.lastrowid
+    cursor.close()
+    conn.close()
+    return novo_id
+    
