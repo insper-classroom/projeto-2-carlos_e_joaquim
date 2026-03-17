@@ -1,5 +1,5 @@
 from flask import Flask, request
-from utils import load_data, add_data, init_db, load_data_by_id, update_data, delete_data, load_data_by_type,load_data_by_city
+from utils import *
 app = Flask(__name__)
 
 CAMPOS_OBRIGATORIOS = [
@@ -15,7 +15,15 @@ CAMPOS_OBRIGATORIOS = [
 
 def validar_campos(payload):
     """Valida se todos os campos obrigatórios estão presentes."""
-    faltando = [campo for campo in CAMPOS_OBRIGATORIOS if campo not in payload]
+    faltando = []
+    for campo in CAMPOS_OBRIGATORIOS:
+        valor = payload.get(campo)
+        if valor is None:
+            faltando.append(campo)
+            continue
+        if isinstance(valor, str) and not valor.strip():
+            faltando.append(campo)
+
     if faltando:
         return False, {"erro": f"Campos obrigatorios: {', '.join(CAMPOS_OBRIGATORIOS)}"}, 400
     return True, None, None
@@ -24,7 +32,16 @@ init_db()
 
 @app.route("/imoveis", methods=["GET"])
 def listar_imoveis():
-    imoveis = load_data()
+    tipo = request.args.get("tipo")
+    cidade = request.args.get("cidade")
+
+    if tipo:
+        imoveis = load_data_by_type(tipo)
+    elif cidade:
+        imoveis = load_data_by_city(cidade)
+    else:
+        imoveis = load_data()
+
     return imoveis, 200
 
 @app.route("/imoveis", methods=["POST"])
@@ -55,7 +72,7 @@ def atualizar_imovel(id):
     atualizado = update_data(id, payload)
 
     if not atualizado:
-        return {"erro": "imovel nao encontrado"}, 404
+        return {"erro": "Imovel nao encontrado"}, 404
 
     return {"mensagem": "Imovel atualizado com sucesso"}, 200
 
@@ -67,20 +84,6 @@ def deletar_imovel(id):
         return {"erro": "Imovel nao encontrado"}, 404
 
     return {"mensagem": "Imovel excluído com sucesso"}, 200
-
-@app.route("/imoveis/tipo=<tipo>", methods=["GET"])
-def listar_imoveis_pelo_tipo(tipo):
-    imoveis = load_data_by_type(tipo)
-    if not imoveis:
-        return {"erro": "Tipo nao encontrado"}, 404
-    return imoveis, 200
-
-@app.route("/imoveis/cidade=<cidade>", methods=["GET"])
-def listar_imoveis_pela_cidade(cidade):
-    imoveis = load_data_by_city(cidade)
-    if not imoveis:
-        return {"erro": "Cidade nao encontrada"}, 404
-    return imoveis, 200
 
 if __name__ == "__main__":
     app.run(debug=True)
