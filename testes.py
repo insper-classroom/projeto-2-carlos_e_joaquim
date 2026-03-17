@@ -264,23 +264,24 @@ def test_listar_imoveis_pelo_tipo(mock_load_db, client):
     mock_cursor = MagicMock()
 
     mock_conn.cursor.return_value = mock_cursor
-    mock_cursor.fetchone.return_value = {
-        'id': 1, 'logradouro': 'John Falls', 'tipo_logradouro': 'Rua', 'bairro': 'Port Carol', 'cidade': 'Knappview', 'cep': '14150', 'tipo': 'casa', 'valor': 961722.89, 'data_aquisicao': '2022-01-05'
-    }
+    mock_cursor.fetchall.return_value = [
+        {'id': 1, 'logradouro': 'John Falls', 'tipo_logradouro': 'Rua', 'bairro': 'Port Carol', 'cidade': 'Knappview', 'cep': '14150', 'tipo': 'casa', 'valor': 961722.89, 'data_aquisicao': '2022-01-05'}
+    ]
 
     mock_load_db.return_value = mock_conn
 
     response = client.get("/imoveis/tipo=casa")
 
     assert response.status_code == 200
-    assert response.get_json()['tipo'] == 'casa'
-    assert response.get_json()['logradouro'] == 'John Falls'
+    assert response.get_json() == [
+        {"id": 1, "logradouro": "John Falls", "tipo_logradouro": "Rua", "bairro": "Port Carol", "cidade": "Knappview", "cep": "14150", "tipo": "casa", "valor": 961722.89, "data_aquisicao": "2022-01-05"}
+    ]
 
     mock_cursor.execute.assert_called_once_with(
         "SELECT * FROM imoveis WHERE tipo = %s",
         ("casa",)
     )
-    mock_cursor.fetchone.assert_called_once()
+    mock_cursor.fetchall.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
 
@@ -292,7 +293,7 @@ def test_listar_imovel_tipo_not_found(mock_load_db, client):
     mock_cursor = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
 
-    mock_cursor.fetchone.return_value = None
+    mock_cursor.fetchall.return_value = []
     mock_load_db.return_value = mock_conn
 
     response = client.get("/imoveis/tipo=mansao")
@@ -304,6 +305,6 @@ def test_listar_imovel_tipo_not_found(mock_load_db, client):
         "SELECT * FROM imoveis WHERE tipo = %s",
         ("mansao",),
     )
-    mock_cursor.fetchone.assert_called_once()
+    mock_cursor.fetchall.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()

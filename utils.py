@@ -68,3 +68,12 @@ def delete_data(id):
     cursor.close()
     conn.close()
     return deleted
+
+def load_data_by_type(tipo):
+    conn=load_db()
+    cursor=conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM imoveis WHERE tipo = %s", (tipo,))
+    imoveis=cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return imoveis
