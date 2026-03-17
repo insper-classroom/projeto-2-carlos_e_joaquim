@@ -8,7 +8,7 @@ def client():
         yield client
 @patch("utils.load_db")
 def test_listar_imoveis_com_dados(mock_load_db, client):
-    """GET /listar-imoveis - lista com dados."""
+    """GET /imoveis - lista com dados."""
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
 
@@ -39,7 +39,7 @@ def test_listar_imoveis_com_dados(mock_load_db, client):
 
 @patch("utils.load_db")
 def test_listar_imoveis_vazio(mock_load_db, client):
-    """GET /listar-imoveis - lista vazia."""
+    """GET /imoveis - lista vazia."""
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
 
@@ -62,7 +62,7 @@ def test_listar_imoveis_vazio(mock_load_db, client):
 
 @patch("utils.load_db")
 def test_listar_imoveis_pelo_id(mock_load_db, client):
-    """GET /listar-imoveis/<id> - listar imóvel pelo id."""
+    """GET /imoveis/<id> - listar imóvel pelo id."""
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
 
@@ -89,7 +89,7 @@ def test_listar_imoveis_pelo_id(mock_load_db, client):
 
 @patch("utils.load_db")
 def test_listar_imovel_id_not_found(mock_load_db, client):
-    """GET /listar-imoveis/<id> - imóvel não existe."""
+    """GET /imoveis/<id> - imóvel não existe."""
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
@@ -114,7 +114,7 @@ def test_listar_imovel_id_not_found(mock_load_db, client):
 
 @patch("utils.load_db")
 def test_adicionar_imoveis(mock_load_db, client):
-    """POST /adicionar-imovel - cria imóvel com sucesso."""
+    """POST /imoveis - cria imóvel com sucesso."""
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
@@ -141,7 +141,7 @@ def test_adicionar_imoveis(mock_load_db, client):
 
 @patch("utils.load_db")
 def test_adicionar_imovel_erro_validacao(mock_load_db, client):
-    """POST /adicionar-imovel - falta campo obrigatório -> 400. Não deve acessar o banco."""
+    """POST /imoveis - falta campo obrigatório -> 400. Não deve acessar o banco."""
     response = client.post("/imoveis", json={"logradouro": "John Falls"})
 
     assert response.status_code == 400
@@ -151,7 +151,7 @@ def test_adicionar_imovel_erro_validacao(mock_load_db, client):
 
 @patch("utils.load_db")
 def test_atualizar_imovel_ok(mock_load_db, client):
-    """PUT /listar-imoveis/<id> - atualiza com sucesso."""
+    """PUT /imoveis/<id> - atualiza com sucesso."""
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
@@ -176,7 +176,7 @@ def test_atualizar_imovel_ok(mock_load_db, client):
 
 @patch("utils.load_db")
 def test_atualizar_imovel_not_found(mock_load_db, client):
-    """PUT /listar-imoveis/<id> - imóvel não encontrado (rowcount=0)."""
+    """PUT /imoveis/<id> - imóvel não encontrado (rowcount=0)."""
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
@@ -201,7 +201,7 @@ def test_atualizar_imovel_not_found(mock_load_db, client):
 
 @patch("utils.load_db")
 def test_atualizar_imovel_erro_validacao(mock_load_db, client):
-    """PUT /listar-imoveis/<id> - falta campo obrigatório -> 400. Não deve acessar o banco."""
+    """PUT /imoveis/<id> - falta campo obrigatório -> 400. Não deve acessar o banco."""
     response = client.put("/imoveis/1", json={"logradouro": "John Falls"})
 
     assert response.status_code == 400
@@ -254,5 +254,56 @@ def test_deletar_contato_not_found(mock_load_db, client):
         (999,),
     )
     mock_conn.commit.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
+
+@patch("utils.load_db")
+def test_listar_imoveis_pelo_tipo(mock_load_db, client):
+    """GET /imoveis/tipo=casa - filtra por tipo."""
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value = mock_cursor
+    mock_cursor.fetchone.return_value = {
+        'id': 1, 'logradouro': 'John Falls', 'tipo_logradouro': 'Rua', 'bairro': 'Port Carol', 'cidade': 'Knappview', 'cep': '14150', 'tipo': 'casa', 'valor': 961722.89, 'data_aquisicao': '2022-01-05'
+    }
+
+    mock_load_db.return_value = mock_conn
+
+    response = client.get("/imoveis/tipo=casa")
+
+    assert response.status_code == 200
+    assert response.get_json()['tipo'] == 'casa'
+    assert response.get_json()['logradouro'] == 'John Falls'
+
+    mock_cursor.execute.assert_called_once_with(
+        "SELECT * FROM imoveis WHERE tipo = %s",
+        ("casa",)
+    )
+    mock_cursor.fetchone.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
+
+
+@patch("utils.load_db")
+def test_listar_imovel_tipo_not_found(mock_load_db, client):
+    """GET /imoveis/tipo=<tipo> - tipo não existe."""
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+
+    mock_cursor.fetchone.return_value = None
+    mock_load_db.return_value = mock_conn
+
+    response = client.get("/imoveis/tipo=mansao")
+
+    assert response.status_code == 404
+    assert response.get_json() == {"erro": "Tipo nao encontrado"}
+
+    mock_cursor.execute.assert_called_once_with(
+        "SELECT * FROM imoveis WHERE tipo = %s",
+        ("mansao",),
+    )
+    mock_cursor.fetchone.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
