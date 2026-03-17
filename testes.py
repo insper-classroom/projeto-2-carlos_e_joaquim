@@ -20,7 +20,7 @@ def test_listar_imoveis_com_dados(mock_load_db, client):
 
     mock_load_db.return_value = mock_conn
 
-    response = client.get("/listar-imoveis")
+    response = client.get("/imoveis")
 
     assert response.status_code == 200
     assert response.get_json() == [
@@ -48,7 +48,7 @@ def test_listar_imoveis_vazio(mock_load_db, client):
 
     mock_load_db.return_value = mock_conn
 
-    response = client.get("/listar-imoveis")
+    response = client.get("/imoveis")
 
     assert response.status_code == 200
     assert response.get_json() == []
@@ -73,7 +73,7 @@ def test_listar_imoveis_pelo_id(mock_load_db, client):
 
     mock_load_db.return_value = mock_conn
 
-    response = client.get("/listar-imoveis/1")
+    response = client.get("/imoveis/1")
 
     assert response.status_code == 200
     assert response.get_json()['id'] == 1
@@ -97,7 +97,7 @@ def test_listar_imovel_id_not_found(mock_load_db, client):
     mock_cursor.fetchone.return_value = None
     mock_load_db.return_value = mock_conn
 
-    response = client.get("/listar-imoveis/999")
+    response = client.get("/imoveis/999")
 
     assert response.status_code == 404
     assert response.get_json() == {"erro": "Imovel nao encontrado"}
@@ -125,7 +125,7 @@ def test_adicionar_imoveis(mock_load_db, client):
     mock_load_db.return_value = mock_conn
 
     payload =  {"logradouro": "John Falls", "tipo_logradouro": "Rua", "bairro": "Port Carol", "cidade": "Knappview", "cep": "14150", "tipo": "casa", "valor": 961722.89, "data_aquisicao": "2022-01-05"}
-    response = client.post("/adicionar-imovel", json=payload)
+    response = client.post("/imoveis", json=payload)
 
     assert response.status_code == 201
     assert response.get_json() == {"id": 10}
@@ -142,7 +142,7 @@ def test_adicionar_imoveis(mock_load_db, client):
 @patch("utils.load_db")
 def test_adicionar_imovel_erro_validacao(mock_load_db, client):
     """POST /adicionar-imovel - falta campo obrigatório -> 400. Não deve acessar o banco."""
-    response = client.post("/adicionar-imovel", json={"logradouro": "John Falls"})
+    response = client.post("/imoveis", json={"logradouro": "John Falls"})
 
     assert response.status_code == 400
     assert response.get_json() == {"erro": "Campos obrigatorios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao"}
@@ -161,7 +161,7 @@ def test_atualizar_imovel_ok(mock_load_db, client):
     mock_load_db.return_value = mock_conn
 
     payload = {"logradouro": "John Falls", "tipo_logradouro": "Rua", "bairro": "Port Carol", "cidade": "Knappview", "cep": "14150", "tipo": "casa", "valor": 961722.89, "data_aquisicao": "2022-01-05"}
-    response = client.put("/listar-imoveis/1", json=payload)
+    response = client.put("/imoveis/1", json=payload)
 
     assert response.status_code == 200
     assert response.get_json() == {"mensagem": "Imovel atualizado com sucesso"}
@@ -185,7 +185,7 @@ def test_atualizar_imovel_not_found(mock_load_db, client):
     mock_load_db.return_value = mock_conn
 
     payload = {"logradouro": "John Falls", "tipo_logradouro": "Rua", "bairro": "Port Carol", "cidade": "Knappview", "cep": "14150", "tipo": "casa", "valor": 961722.89, "data_aquisicao": "2022-01-05"}
-    response = client.put("/listar-imoveis/999", json=payload)
+    response = client.put("/imoveis/999", json=payload)
 
     assert response.status_code == 404
     assert response.get_json() == {"erro": "imovel nao encontrado"}
@@ -202,7 +202,7 @@ def test_atualizar_imovel_not_found(mock_load_db, client):
 @patch("utils.load_db")
 def test_atualizar_imovel_erro_validacao(mock_load_db, client):
     """PUT /listar-imoveis/<id> - falta campo obrigatório -> 400. Não deve acessar o banco."""
-    response = client.put("/listar-imoveis/1", json={"logradouro": "John Falls"})
+    response = client.put("/imoveis/1", json={"logradouro": "John Falls"})
 
     assert response.status_code == 400
     assert response.get_json() == {"erro": "Campos obrigatorios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao"}

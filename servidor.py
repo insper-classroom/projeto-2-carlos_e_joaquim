@@ -22,19 +22,12 @@ def validar_campos(payload):
 
 init_db()
 
-@app.route("/listar-imoveis")
+@app.route("/imoveis", methods=["GET"])
 def listar_imoveis():
     imoveis = load_data()
     return imoveis, 200
 
-@app.route("/listar-imoveis/<int:id>")
-def listar_imoveis_pelo_id(id):
-    imovel = load_data_by_id(id)
-    if imovel is None:
-        return {"erro": "Imovel nao encontrado"}, 404
-    return imovel, 200
-
-@app.route("/adicionar-imovel", methods=["POST"])
+@app.route("/imoveis", methods=["POST"])
 def adicionar_imovel():
     payload = request.get_json(silent=True) or {}
     valido, erro, status = validar_campos(payload)
@@ -45,7 +38,14 @@ def adicionar_imovel():
 
     return {"id": novo_id}, 201
 
-@app.route("/listar-imoveis/<int:id>", methods=["PUT"])
+@app.route("/imoveis/<int:id>", methods=["GET"])
+def listar_imoveis_pelo_id(id):
+    imovel = load_data_by_id(id)
+    if imovel is None:
+        return {"erro": "Imovel nao encontrado"}, 404
+    return imovel, 200
+
+@app.route("/imoveis/<int:id>", methods=["PUT"])
 def atualizar_imovel(id):
     payload = request.get_json(silent=True) or {}
     valido, erro, status = validar_campos(payload)
@@ -53,7 +53,7 @@ def atualizar_imovel(id):
         return erro, status
 
     atualizado = update_data(id, payload)
-    
+
     if not atualizado:
         return {"erro": "imovel nao encontrado"}, 404
 
