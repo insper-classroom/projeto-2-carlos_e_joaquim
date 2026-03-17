@@ -208,3 +208,51 @@ def test_atualizar_imovel_erro_validacao(mock_load_db, client):
     assert response.get_json() == {"erro": "Campos obrigatorios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao"}
 
     mock_load_db.assert_not_called()
+
+
+@patch("utils.load_db")
+def test_deletar_imovel_ok(mock_load_db, client):
+    """DELETE /imoveis/<id> - deleta com sucesso."""
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+
+    mock_cursor.rowcount = 1
+    mock_load_db.return_value = mock_conn
+
+    response = client.delete("/imoveis/1")
+
+    assert response.status_code == 200
+    assert response.get_json() == {"mensagem": "Imovel excluído com sucesso"}
+
+    mock_cursor.execute.assert_called_once_with(
+        "DELETE FROM imoveis WHERE id = %s",
+        (1,),
+    )
+    mock_conn.commit.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
+
+
+@patch("utils.load_db")
+def test_deletar_contato_not_found(mock_load_db, client):
+    """DELETE /imoveis/<id> - imóvel não encontrado."""
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+
+    mock_cursor.rowcount = 0
+    mock_load_db.return_value = mock_conn
+
+    response = client.delete("/imoveis/999")
+
+    assert response.status_code == 404
+    assert response.get_json() == {"erro": "Imovel nao encontrado"}
+
+    mock_cursor.execute.assert_called_once_with(
+        "DELETE FROM imoveis WHERE id = %s",
+        (999,),
+    )
+    mock_conn.commit.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
