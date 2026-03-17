@@ -308,3 +308,55 @@ def test_listar_imovel_tipo_not_found(mock_load_db, client):
     mock_cursor.fetchall.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
+
+@patch("utils.load_db")
+def test_listar_imoveis_pela_cidade(mock_load_db, client):
+    """GET /imoveis/cidade=Knappview - filtra por cidade."""
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value = mock_cursor
+    mock_cursor.fetchall.return_value = [
+        {'id': 1, 'logradouro': 'John Falls', 'tipo_logradouro': 'Rua', 'bairro': 'Port Carol', 'cidade': 'Knappview', 'cep': '14150', 'tipo': 'casa', 'valor': 961722.89, 'data_aquisicao': '2022-01-05'}
+    ]
+
+    mock_load_db.return_value = mock_conn
+
+    response = client.get("/imoveis/cidade=Knappview")
+
+    assert response.status_code == 200
+    assert response.get_json() == [
+        {"id": 1, "logradouro": "John Falls", "tipo_logradouro": "Rua", "bairro": "Port Carol", "cidade": "Knappview", "cep": "14150", "tipo": "casa", "valor": 961722.89, "data_aquisicao": "2022-01-05"}
+    ]
+
+    mock_cursor.execute.assert_called_once_with(
+        "SELECT * FROM imoveis WHERE cidade = %s",
+        ("Knappview",)
+    )
+    mock_cursor.fetchall.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
+
+
+@patch("utils.load_db")
+def test_listar_imovel_cidade_not_found(mock_load_db, client):
+    """GET /imoveis/cidade=<cidade> - cidade não existe."""
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+
+    mock_cursor.fetchall.return_value = []
+    mock_load_db.return_value = mock_conn
+
+    response = client.get("/imoveis/cidade=goiania")
+
+    assert response.status_code == 404
+    assert response.get_json() == {"erro": "Cidade nao encontrada"}
+
+    mock_cursor.execute.assert_called_once_with(
+        "SELECT * FROM imoveis WHERE cidade = %s",
+        ("goiania",),
+    )
+    mock_cursor.fetchall.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
