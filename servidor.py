@@ -12,7 +12,7 @@ def listar_imoveis():
 @app.route("/listar-imoveis/<int:id>")
 def listar_imoveis_pelo_id(id):
     imovel = load_data_by_id(id)
-    if not imovel:
+    if imovel is None:
         return {"erro": "Imovel nao encontrado"}, 404
     return imovel, 200
 

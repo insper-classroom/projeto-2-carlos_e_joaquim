@@ -28,7 +28,7 @@ def load_data_by_id(id):
     conn=load_db()
     cursor=conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM imoveis WHERE id = %s", (id,))
-    imovel=cursor.fetchall()
+    imovel=cursor.fetchone()
     cursor.close()
     conn.close()
     return imovel
