@@ -1,5 +1,5 @@
 from flask import Flask, request
-from utils import load_data, add_data, init_db, load_data_by_id, update_data, delete_data, load_data_by_type
+from utils import load_data, add_data, init_db, load_data_by_id, update_data, delete_data, load_data_by_type,load_data_by_city
 app = Flask(__name__)
 
 CAMPOS_OBRIGATORIOS = [
@@ -75,5 +75,13 @@ def listar_imoveis_pelo_tipo(tipo):
         return {"erro": "Tipo nao encontrado"}, 404
     return imoveis, 200
 
+@app.route("/imoveis/cidade=<cidade>", methods=["GET"])
+def listar_imoveis_pela_cidade(cidade):
+    imoveis = load_data_by_city(cidade)
+    if not imoveis:
+        return {"erro": "Cidade nao encontrada"}, 404
+    return imoveis, 200
+
 if __name__ == "__main__":
     app.run(debug=True)
+

@@ -77,3 +77,12 @@ def load_data_by_type(tipo):
     cursor.close()
     conn.close()
     return imoveis
+
+def load_data_by_city(cidade):
+    conn=load_db()
+    cursor=conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM imoveis WHERE cidade = %s", (cidade,))
+    imoveis=cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return imoveis
