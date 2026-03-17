@@ -45,4 +45,16 @@ def add_data(imovel):
     cursor.close()
     conn.close()
     return novo_id
-    
+
+def update_data(id, imovel):
+    conn=load_db()
+    cursor=conn.cursor()
+    cursor.execute(
+        "UPDATE imoveis SET logradouro = %s, tipo_logradouro = %s, bairro = %s, cidade = %s, cep = %s, tipo = %s, valor = %s, data_aquisicao = %s WHERE id = %s",
+        (imovel["logradouro"], imovel["tipo_logradouro"], imovel["bairro"], imovel["cidade"], imovel["cep"], imovel["tipo"], imovel["valor"], imovel["data_aquisicao"], id)
+    )
+    conn.commit()
+    updated = cursor.rowcount > 0
+    cursor.close()
+    conn.close()
+    return updated

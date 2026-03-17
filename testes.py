@@ -14,8 +14,8 @@ def test_listar_imoveis_com_dados(mock_load_db, client):
 
     mock_conn.cursor.return_value = mock_cursor
     mock_cursor.fetchall.return_value = [
-        ('John Falls', 'Rua', 'Port Carol', 'Knappview', '14150', 'casa', 961722.89, '2022-01-05'),
-        ('Jane Doe', 'Avenida', 'Centro', 'São Paulo', '01310-100', 'apartamento', 500000.00, '2022-01-06'),
+        {'id': 1, 'logradouro': 'John Falls', 'tipo_logradouro': 'Rua', 'bairro': 'Port Carol', 'cidade': 'Knappview', 'cep': '14150', 'tipo': 'casa', 'valor': 961722.89, 'data_aquisicao': '2022-01-05'},
+        {'id': 2, 'logradouro': 'Jane Doe', 'tipo_logradouro': 'Avenida', 'bairro': 'Centro', 'cidade': 'São Paulo', 'cep': '01310-100', 'tipo': 'apartamento', 'valor': 500000.00, 'data_aquisicao': '2022-01-06'},
     ]
 
     mock_load_db.return_value = mock_conn
@@ -24,8 +24,8 @@ def test_listar_imoveis_com_dados(mock_load_db, client):
 
     assert response.status_code == 200
     assert response.get_json() == [
-        {"logradouro": "John Falls", "tipo_logradouro": "Rua", "bairro": "Port Carol", "cidade": "Knappview", "cep": "14150", "tipo": "casa", "valor": 961722.89, "data_aquisicao": "2022-01-05"},
-        {"logradouro": "Jane Doe", "tipo_logradouro": "Avenida", "bairro": "Centro", "cidade": "São Paulo", "cep": "01310-100", "tipo": "apartamento", "valor": 500000.00, "data_aquisicao": "2022-01-06"},
+        {"id": 1, "logradouro": "John Falls", "tipo_logradouro": "Rua", "bairro": "Port Carol", "cidade": "Knappview", "cep": "14150", "tipo": "casa", "valor": 961722.89, "data_aquisicao": "2022-01-05"},
+        {"id": 2, "logradouro": "Jane Doe", "tipo_logradouro": "Avenida", "bairro": "Centro", "cidade": "São Paulo", "cep": "01310-100", "tipo": "apartamento", "valor": 500000.00, "data_aquisicao": "2022-01-06"},
     ]
 
     mock_cursor.execute.assert_called_once_with(
@@ -83,7 +83,7 @@ def test_listar_imoveis_pelo_id(mock_load_db, client):
         "SELECT * FROM imoveis WHERE id = %s",
         (1,)
     )
-    mock_cursor.fetchall.assert_called_once()
+    mock_cursor.fetchone.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
 
@@ -145,7 +145,7 @@ def test_adicionar_imovel_erro_validacao(mock_load_db, client):
     response = client.post("/adicionar-imovel", json={"logradouro": "John Falls"})
 
     assert response.status_code == 400
-    assert response.get_json() == {"erro": "Campos obrigatórios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao"}
+    assert response.get_json() == {"erro": "Campos obrigatorios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao"}
 
     mock_load_db.assert_not_called()
 
@@ -188,7 +188,7 @@ def test_atualizar_imovel_not_found(mock_load_db, client):
     response = client.put("/listar-imoveis/999", json=payload)
 
     assert response.status_code == 404
-    assert response.get_json() == {"erro": "imovel não encontrado"}
+    assert response.get_json() == {"erro": "imovel nao encontrado"}
 
     mock_cursor.execute.assert_called_once_with(
         "UPDATE imoveis SET logradouro = %s, tipo_logradouro = %s, bairro = %s, cidade = %s, cep = %s, tipo = %s, valor = %s, data_aquisicao = %s WHERE id = %s",
@@ -205,6 +205,6 @@ def test_atualizar_imovel_erro_validacao(mock_load_db, client):
     response = client.put("/listar-imoveis/1", json={"logradouro": "John Falls"})
 
     assert response.status_code == 400
-    assert response.get_json() == {"erro": "Campos obrigatórios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao"}
+    assert response.get_json() == {"erro": "Campos obrigatorios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao"}
 
     mock_load_db.assert_not_called()
