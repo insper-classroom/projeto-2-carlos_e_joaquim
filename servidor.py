@@ -27,6 +27,10 @@ def validar_campos(payload):
         return False, {"erro": f"Campos obrigatorios: {', '.join(CAMPOS_OBRIGATORIOS)}"}, 400
     return True, None, None
 
+@app.route("/")
+def home():
+    return "Bem-vindo à API de Imóveis!", 200
+
 @app.route("/imoveis", methods=["GET"])
 def listar_imoveis():
     tipo = request.args.get("tipo")

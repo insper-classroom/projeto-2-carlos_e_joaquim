@@ -3,6 +3,33 @@ import mysql.connector
 from flask import url_for
 
 
+def _load_env_file():
+    """Carrega variaveis do .env para o processo, sem sobrescrever variaveis ja definidas."""
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if not os.path.exists(env_path):
+        return
+
+    with open(env_path, "r", encoding="utf-8") as env_file:
+        for line in env_file:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip("\"'")
+            os.environ.setdefault(key, value)
+
+
+def _get_env(*keys):
+    """Retorna o primeiro valor de variavel de ambiente encontrado entre as chaves informadas."""
+    for key in keys:
+        value = os.getenv(key)
+        if value is not None and str(value).strip() != "":
+            return value
+    return None
+
+
 def montar_links(contexto, imovel_id=None, tipo=None, cidade=None):
     if contexto == "colecao":
         links = {
@@ -59,13 +86,16 @@ def resposta_colecao_com_links(imoveis, tipo=None, cidade=None):
     }
 
 def load_db():
+    _load_env_file()
+    port_value = _get_env('port', 'porta')
+
     conn=mysql.connector.connect(
-        host=os.getenv('host'),
-        port=os.getenv('port'),
-        user=os.getenv('user'),
-        password=os.getenv('password'),
-        database=os.getenv('database'),
-        ssl_ca=os.getenv('ssl_ca')
+        host=_get_env('host'),
+        port=int(port_value) if port_value is not None else None,
+        user=_get_env('user'),
+        password=_get_env('password'),
+        database=_get_env('database'),
+        ssl_ca=_get_env('ssl_ca')
     )
     return conn
 
