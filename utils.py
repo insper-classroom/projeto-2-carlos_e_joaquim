@@ -1,5 +1,62 @@
 import os
 import mysql.connector
+from flask import url_for
+
+
+def montar_links(contexto, imovel_id=None, tipo=None, cidade=None):
+    if contexto == "colecao":
+        links = {
+            "self": {"href": url_for("listar_imoveis")},
+            "create": {"href": url_for("adicionar_imovel")},
+        }
+        if tipo:
+            links["filtrar_por_tipo"] = {"href": f"{url_for('listar_imoveis')}?tipo={tipo}"}
+        if cidade:
+            links["filtrar_por_cidade"] = {"href": f"{url_for('listar_imoveis')}?cidade={cidade}"}
+        return links
+
+    if contexto == "item":
+        return {
+            "self": {"href": url_for("listar_imoveis_pelo_id", id=imovel_id)},
+            "update": {"href": url_for("atualizar_imovel", id=imovel_id)},
+            "delete": {"href": url_for("deletar_imovel", id=imovel_id)},
+            "collection": {"href": url_for("listar_imoveis")},
+        }
+
+    if contexto == "criacao":
+        return {
+            "self": {"href": url_for("listar_imoveis_pelo_id", id=imovel_id)},
+            "collection": {"href": url_for("listar_imoveis")},
+        }
+
+    if contexto == "atualizacao":
+        return {
+            "self": {"href": url_for("listar_imoveis_pelo_id", id=imovel_id)},
+            "delete": {"href": url_for("deletar_imovel", id=imovel_id)},
+            "collection": {"href": url_for("listar_imoveis")},
+        }
+
+    if contexto == "pos_exclusao":
+        return {
+            "collection": {"href": url_for("listar_imoveis")},
+            "create": {"href": url_for("adicionar_imovel")},
+        }
+
+    raise ValueError(f"Contexto de links invalido: {contexto}")
+
+
+def serializar_imovel_com_links(imovel):
+    imovel_id = imovel["id"]
+    item = dict(imovel)
+    item["_links"] = montar_links("item", imovel_id=imovel_id)
+    return item
+
+
+def resposta_colecao_com_links(imoveis, tipo=None, cidade=None):
+    return {
+        "dados": [serializar_imovel_com_links(imovel) for imovel in imoveis],
+        "_links": montar_links("colecao", tipo=tipo, cidade=cidade),
+    }
 
 def load_db():
     conn=mysql.connector.connect(
@@ -11,9 +68,6 @@ def load_db():
         ssl_ca=os.getenv('ssl_ca')
     )
     return conn
-
-def init_db():
-    pass
 
 def load_data():
     conn=load_db()
