@@ -29,7 +29,9 @@ def validar_campos(payload):
 
 @app.route("/")
 def home():
-    return "Bem-vindo à API de Imóveis!", 200
+    return {"mensagem": "Bem-vindo a API de Imoveis!",
+            "_links": montar_links("colecao")
+            }, 200
 
 @app.route("/imoveis", methods=["GET"])
 def listar_imoveis():
